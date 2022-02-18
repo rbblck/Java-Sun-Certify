@@ -1,0 +1,191 @@
+package suncertify.presentation.gui;
+
+import suncertify.presentation.ApplicationRunner;
+import suncertify.presentation.gui.actions.CloseProgramAction;
+import java.awt.BorderLayout;
+import java.awt.Dialog.ModalityType;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import javax.swing.Action;
+import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import suncertify.presentation.ApplicationMode;
+
+/**
+ * This class extends <code>JDialog</code> and is opened when the application is 
+ * opened with either "alone" or when no command line argument (flag) is used 
+ * and uses the sheared <code>ConfigurationPanel</code> and then closed once the 
+ * configuration parameters are set.  Once the dialog has been closed the main 
+ * application in the appropriate mode will start.
+ * 
+ * @author Robert Black
+ * @version 1.0
+ * @see suncertify.presentation.gui.BookingConfigurationPanel
+ */
+public class BookingConfigurationDialog extends JDialog {
+    
+    /**
+     * A version number for this class so that serialization can occur without 
+     * worrying about the underlying class changing between serialization and 
+     * de-serialization.
+     */
+    private static final long serialVersionUID = -1749967862698529885L;
+    
+    /**
+     * Holds a reference to the shared <code>ConfigurationPaneland</code>.
+     */
+    private JPanel configPanel;
+    
+    /**
+     * Holds the <code>ApplicationMode Enum</code>.
+     */
+    private ApplicationMode mode;
+    
+    //The Swing components start.
+    private JMenuBar menuBar;
+    private JMenu fileMenu;
+    private JMenu helpMenu;
+    private JMenuItem closeMenuItem;
+    private JMenuItem helpContentsItem;
+    //Swing components end.
+
+    /**
+     * The constructor takes an <code>ApplicationMode Enum</code> object and 
+     * updates the <code>mode</code> field and then calls the 
+     * <code>init()</code> method to build and initialize the dialog.
+     * 
+     * @param mode the <code>ApplicationMode Enum</code> object.
+     */
+    public BookingConfigurationDialog(ApplicationMode mode) {
+        this.mode = mode;
+        this.init();
+    }
+    
+    /**
+     * The initialization and build method used in the constructor. 
+     */
+    private void init() {
+        //Actions
+        Action exit = new CloseProgramAction();
+        
+        //Set the default close dialog operation.
+        this.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+            
+        });
+        
+        //Creates a menubar.
+        this.menuBar = new JMenuBar();
+        
+        //Creates a "File" menu
+        this.fileMenu = new JMenu("File");
+        
+        //Creates an "Exit" menu item and adds an action listener to it then 
+        //adds the "Exit" menu item to the "File" menu.
+        this.closeMenuItem = new JMenuItem(exit);
+        this.fileMenu.add(this.closeMenuItem);
+        
+        //Creates a "Help" menu
+        this.helpMenu = new JMenu("Help");
+        
+        //Creates an "Help Contents" menu item and adds an action listener to it 
+        //then adds the "Exit" menu item to the "Help" menu.
+        this.helpContentsItem = new JMenuItem("Help Contents");
+        this.helpContentsItem.setToolTipText("Click to open the help page.");
+        this.helpContentsItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    //Create a JEditorPane and set editable false.
+                    JEditorPane helpContentsPane = new JEditorPane();
+                    helpContentsPane.setEditable(false);
+                    
+                    //Create a URL with a path to the root directory.
+                    String userDir = System.getProperty("user.dir");
+                    String fileSep = File.separator;
+                    String url 
+                            = "file:///" + userDir + fileSep + "docs" + fileSep 
+                            + "userguide.html";
+                    URL helpHtml = new URL(url);
+                    helpContentsPane.setPage(helpHtml);
+                    
+                    //Create a JScrollPane and insert the helpContentsPane.
+                    JScrollPane scrollPane = new JScrollPane(helpContentsPane);
+                    
+                    //Create a modeless JDialog and set its properties.
+                    JDialog helpContentsDialog = new JDialog();
+                    helpContentsDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    helpContentsDialog.setTitle("Bodgitt and Scarper Contractor "
+                            + "Booking System Help");
+                    helpContentsDialog.add(scrollPane, BorderLayout.CENTER);
+                    helpContentsDialog.setSize(600, 500);
+                    helpContentsDialog.setModalityType(ModalityType.MODELESS);
+                    
+                    //Locates the dialod into the centre of the screen.
+                    Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+                    int x = (int) ((d.getWidth() - helpContentsDialog.getWidth()) / 2);
+                    int y = (int) ((d.getHeight() - helpContentsDialog.getHeight()) / 2);
+                    helpContentsDialog.setLocation(x, y);
+                    
+                    //Make it visable.
+                    helpContentsDialog.setVisible(true);
+                } catch (MalformedURLException ex) {
+                    ApplicationRunner.handleException(ex.toString());
+                } catch (IOException ex) {
+                    ApplicationRunner.handleException(ex.toString());
+                }
+            }
+            
+        });
+        this.helpMenu.add(this.helpContentsItem);
+        
+        //Adds the "File" and the "Help" menu to the menu bar.
+        this.menuBar.add(fileMenu);
+        this.menuBar.add(this.helpMenu);
+        
+        //Adds the menue bar to the dialog.
+        this.setJMenuBar(this.menuBar);
+        
+        //Adds the BookingConfigurationPanel and using the ApplicationMode Enum used in 
+        //the BookingConfigurationPanel to determine the layout and funtionallity of 
+        //the sheared BookingConfigurationPanel.
+        if (mode == ApplicationMode.NETWORK_CLIENT) {
+            this.setTitle("Network Client Configuration");
+            this.configPanel = new BookingConfigurationPanel(this.mode, this);
+            this.add(configPanel);
+        } else if (mode == ApplicationMode.STANDALONE_CLIENT) {
+            this.setTitle(
+                    "Bodgitt and Scarper Contractor Booking System Configuration");
+            this.configPanel = new BookingConfigurationPanel(this.mode, this);
+            this.add(configPanel);
+        }
+        
+        //Sizes the dialog to fit all the components.
+        this.pack();
+        
+        //Locates the dialog into the centre of the screen.
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (int) ((d.getWidth() - this.getWidth()) / 2);
+        int y = (int) ((d.getHeight() - this.getHeight()) / 2);
+        this.setLocation(x, y);
+    }
+    
+}

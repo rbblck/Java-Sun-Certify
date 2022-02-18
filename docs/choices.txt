@@ -1,0 +1,364 @@
+Design Choices for the Bodgitt and Scarper booking system application
+---------------------------------------------------------------------
+
+-Introduction
+
+This document contains the problems which I have come across, my thoughts and the 
+design choices that I have made on a high to medium level for this application, to 
+create a solution required for the given instructions.  Low level design an 
+implementation choices are contained within the code comments located in the code
+directory.
+
+The contents of this document are as follows:
+
+1.	Installation and Start Up.
+2.	Overview.
+3.	Presentation Layer.
+4.	Business Layer.
+5.	Persistence Layer
+
+---------------------------------------------------------------------
+
+Installation and Start Up-
+
+I have designed the application to start up two modes.
+
+1.	In Stand Alone mode – using the stand-alone mode.
+
+2.	Network Mode – using the server mode and the network client mode in two 
+	different JVM’s.
+
+For both modes you need to be in the current working directory before executing 
+commands.
+
+Specific instructions to start the application in both modes follow:
+
+1.	Stand Alone Mode
+
+In stand-alone mode, you will only need to start one JVM to run the application as 
+the server is not used in this mode.
+
+Once in the installed directory, runs the following command (using the “alone” flag):
+
+	“java -jar runme.jar alone”
+
+The Application will now present a frame allowing you to state the location of the 
+database.  For more information on this see userguide.html in the doc directory.
+
+2.	Network Mode
+
+In network mode, you will need to start the server in one JVM and the client in 
+another JVM.  The JVM’s can be on the same computer or different computers connected 
+through a network.
+
+First you will need to start the server in the first JVM.  To do this, once in the 
+installed directory, run the following command (using the “server” flag):
+
+	“java -jar runme.jar server”
+
+The server will now present a frame allowing you to state the location of the 
+database and the port that you would like the server to listen on.  For more 
+information on this see userguide.html in the doc directory.
+
+Second you will need to start the network client on the other JVM.  To do this, 
+once in the installed directory, run the following command (using no flag):
+
+	“java -jar runme.jar”
+
+The client will now present a frame allowing you to state the location of the 
+server which in turn has the location of the database and the port that you would 
+like the client to connect through.  For more information on this see userguide.html 
+in the doc directory.
+
+---------------------------------------------------------------------
+
+-Overview
+
+Considering the problem of making the application easy to maintain, I looked at 
+several architectural design patterns. After careful consideration, I have 
+decided to use the traditional “four-tier layered architecture” as this is 
+quiet popular for most developers, makes the application scalable and easy to 
+maintain. 
+
+The four layers are as follows:
+
+1.	Presentation Layer (interacts with the Business layer).
+
+2.	Business Layer (interacts with the Presentation Layer and the 
+	Persistence Layer).
+
+3.	Persistence Layer (Interacts with the Business Layer and the Persistence 
+	Layer).
+
+4.	The actual data file (Interacts with the Persistence Layer).
+
+Each layer acts as a component of the application and can be updated or changed 
+without affecting the rest of the application making it scalable and easy to 
+maintain.
+
+Apart from the above, the application also needs to operate in two modes:
+
+1.	Stand-alone (one application communicating with the database on the 
+	same machine).
+
+2.	Client-Server (the client in one JVM communicating with the server in 
+	another JVM communicating with the database on the server machine).
+
+The stand-alone version did not require much application level thought apart 
+from the above.
+
+The client-server version, on the other hand, did require some thought.  
+
+The application level decisions which were worth noting are as follows:
+
+The first application level decision was choosing between a thick client were 
+business logic is performed on the clients machine or, a thin client were the 
+business logic is performed on the server machine.
+
+I chose a thin client version due to several reasons.  They are as follows:
+
+1.	The issue of locking a record forever through logical locking, if a client 
+	crashed or a network failure should occur, would be solved if the business 
+	logic were to be on the server machine.  The reason being, if a client 
+	crashes or a network problem were to arise, there will be no records 
+	locked due to the fact that either the client request would never reach 
+	the server, therefore, the record would have never have been locked or if 
+	the request did get through to the server the method in the business 
+	logic would complete anyway thus releasing the locked record.  The only 
+	risk that would exist will be if the business method were to be 
+	interrupted during an operation, to which I would consider unlikely and 
+	if the server machine were to crash, the entire system would have to be 
+	re-initialised again anyway.
+
+2.	As the business logic processing would be done on the server machine, 
+	it would be possible to run clients on slower machines thus extending 
+	the life of existing computers.
+
+3.	When the application needs updating within the business layer, there 
+	would be no need to redistribute updated client software saving a lot 
+	of time, money and effort.
+
+The second decision to be made was to decide which networking approach (Sockets 
+or RMI) to take.
+
+As sockets and RMI are both fairly straight forward to implement, I chose to 
+use sockets for several reasons, they are listed as follows:
+
+1.	Socket servers are more scalable and faster than RMI servers.  RMI 
+	acquiring a remote object requires a network call performing a registry 
+	lookup and each remote object has a client side stub which adds a layer 
+	between the client and remote object causing an extra communication 
+	overhead.
+
+2.	The application protocol is very simple therefore I feel that sockets 
+	are an excellent choice.
+
+3.	There is no need to implement a connection Factory as with an RMI 
+	solution.
+
+4.	Creating a multi-threaded server is fairly straight forward.  I have 
+	decided to spawn a new thread for each socket request using an 
+	“Executor” object to create a fixed thread pool from the 
+	“java.util.concurrent” package.
+
+	Note: I have limited the thread pool to 100 threads as the database is 
+	not large and I do not anticipate more than 100 concurrent activities 
+	at one time.  This can be changed in the next revision if needed.
+
+The design choices for each layer will now be explained.
+
+---------------------------------------------------------------------
+
+-Presentation Layer (suncertify.presentation package)
+
+The Presentation layer contains the application entry point and the user 
+interface. It is responsible for creating frames, letting the user interact 
+with the application using buttons, text fields, etc, and rendering the 
+requested information asked for by the user. 
+
+Apart from a requirement in the instructions, to separate (decouple) the three 
+areas of responsibilities:
+
+1.	View – rendering the data.
+
+2.	Controller – handling user requests (capturing user gestures).
+
+3.	Model – holding, sending and receiving the data to and from the 
+	business layer.
+
+I have implemented the Model-Viewer-Controller design pattern. 
+
+The second problem I had to consider was if the model is updated by a user 
+gesture, through the controller, the view also needs to be updated to render 
+this change.  This would be an event that the view needs to be aware of, 
+therefore I have used the Observer design pattern, within the Model-Viewer-
+Controller design pattern, having the model being the subject and the view being 
+the observer (listener).  When a view is created it takes a reference of the 
+model and registers its self with the model as a listener.
+
+The third problem which I had to consider was that the Graphical User Interface 
+(GUI). It would be preferable according to the instructions, to have the option 
+of being updating or replaced completely by another GUI, with minimal disruption 
+e.g. a JSP web GUI.  Therefore, I have used the Strategy Design pattern, so that 
+the View can take a GUI of any kind as long as it implements the “BookingGui” 
+interface, enabling a new type of GUI to be used by the View without having to 
+update code in the View class in the Model-View-Controller part of the 
+application.
+
+The fourth problem I had to consider is the view and controller’s communication 
+with the model on the server in network-client mode.  The solution was the 
+Strategy design pattern again.  The model and the network implementation of the 
+model, both implement the same “BookingModel” interface therefore the controller 
+and the view both take a “BookingModel” and the GUI doesn’t realise whether it 
+is communicating across a network or locally.  If the application is in client 
+mode it implements the BookingModelNwImp” which uses the “BookingNwClient” in 
+the Business layer to communicate the server, otherwise if it is in stand-alone 
+mode it uses the “BookingModelImp” to communicate directly with the Business 
+layer.  This also allows the stand-alone mode to completely bypass the networking 
+code as required by the instructions.
+
+The GUI has been designed with human interface concepts as far as possible.  It 
+presents an abstraction of the actual functions of the system shielding the user 
+from the complexities of the application itself.
+
+According to the instructions, I have identified three use cases.  They are as 
+follows:
+
+1.	Allow the user to specify the database location.
+
+2.	Search the database for contractors (with criteria 
+	that matches exactly or all with no criteria entered in any field).
+
+3.	Select a contractor record and book it.
+ 
+The GUI has been designed to accommodate the above use cases, making sure that 
+the first use case is completed before the rest and use cases 2 and 3 happen 
+in the right order leading to a booking.  Each use case is presented in order 
+i.e. from left to right and top down catering for the western world.  The GUI 
+also offers tool tips to help the user recognise the use of each element in 
+the GUI and a user help guild is available in the help menu.
+
+One other problem I had to solve was that the search criteria in the “DBAccess” 
+interface requires the search criteria returns search results with criteria 
+matching the beginning of the record fields, whereas the GUI requires the 
+returned results match the criteria exactly.  My solution to this was to use 
+the search criteria with criteria matching the beginning of the field and then 
+in the “BookingModel” I would further filter the search results using a separate 
+class created to filter the records and return only search results that exactly 
+matched the criteria entered by the user in the GUI.
+
+---------------------------------------------------------------------
+
+-Business Layer (suncertify.business package)
+
+The first problem in this layer, which actually lead to the creation of this 
+layer, was that I had to think about working with the “DBAcces” interface 
+(legacy code), given in the instructions that it must be used.  To return 
+searched data or book a record would mean several calls to the Data class methods,
+ that implements the “DBAcces” interface, and an amount of processing to convert 
+the received objects from the data class into objects that can be used 
+effectively in the model for the presentation layer e.g. a search needs to 
+produce a collection of Contractor objects not an array of record numbers to 
+populate the model with the required data, and in turn render the records in the 
+view. 
+ 
+My solution to this, was to either create the list of method calls to the Data 
+class with some processing within the model or, to create a class that the model 
+calls that would return the required objects by in turn calling the methods of 
+the Data class.  I therefore, used the Adapter Design pattern, creating a 
+separate class, separating this responsibility and putting it into the Business 
+Layer.   With this arrangement any update to the business rules or, any updates 
+downstream from this would not have to affect the presentation layer at all e.g. 
+client software would not have to be updated if the business methods change 
+making it easier to maintain.
+
+The next problem to consider was regarding the client-server mode.  The problem 
+which I was faced with here, is actually sending data and invoking methods across 
+the network, to update the data and receive the data it back so it can be used 
+e.g. returning a set of searched records from a remote database to be displayed.  
+
+My solution to the problem was, to use the Command Design pattern, which 
+encapsulates the data and invokers in a Command object in the network 
+implementation of the model, send it to the server with the network client in 
+the Business layer to the server, creating a socket which passes the Command 
+object to a server service (the receiver in the server business layer) which 
+will invoke its execute method, which in turn invokes methods on the model 
+server side, updating the data or recording an exception in the Command object 
+and sends it back encapsulated  to the client which returns the object 
+(or throws the exception) to the network model implementation. The Command object 
+will be serialized for this to work.
+
+The server also uses the Strategy Design pattern so its server service can be 
+change which enables this server to use any server service it likes as long as 
+it implements the “ServerService” interface.
+
+The Business layer interacts with Persistence Layer using the Database Accesses 
+Object Design pattern.  This provides an abstract interface to the database in 
+the persistence mechanism, providing some specific operations without exposing 
+details of the database. It also provides a mapping from application calls to 
+the persistence layer.
+
+---------------------------------------------------------------------
+
+-Persistence Layer (suncertify.db package)
+
+Regarding the data transfer problem across a network. The solution that I 
+considered was coding the application to receive each field separately.  But 
+this would mean a lot of calls to the data file, therefore, creating a potential 
+performance bottle neck in a multi user environment especially over a network. 
+The second problem with the above is that the code could be very complicated and 
+hard to read. 
+
+Therefore, to solve this problem, I have used the Value Object Design pattern, 
+creating a single class that the Persistence layer would use or any other class 
+in the application that could use it usefully.  It will contain the data 
+corresponding to a contractor record, therefore, representing a record in the 
+database.  It would solve the problem of hard to read code by making it clearer 
+and giving it less volume.  It would also help solve the potential bottle neck 
+caused my too many calls to the database.  I have, therefore, created a class 
+called the “Contractor” class as my Value Object to represent, transfer and 
+manipulate a contractor’s database record information.  The “Contractor” class 
+would also hold meta data such as the deleted / valid flag, therefore, making it 
+useful for identifying such records and further methods for extracting record 
+information in the form of a String[] array etc.
+
+The second problem in this layer was deciding what the records primary key was 
+to be.  The instructions state that the search criteria use would be the name 
+and location fields and given that there are no further instructions, I have 
+decided that a records primary key should be the combination of the name and 
+location fields.   The “Contractor” object reflects this in its “equals()” 
+method.
+
+The third problem to solve in this layer was the Tight Coupling in the “DBAcces” 
+interface (legacy code). Looking closely at it, I realised that the interface 
+seems to have two responsibilities.  It is responsible for accessing the data 
+on the database file and also for providing logical record locking.  Although I 
+could supply both these responsibilities in the one class, it would make the 
+code more difficult to maintain at a later date and give the class less focus 
+putting these two responsibilities together.
+
+To solve this problem I have used the Façade Design pattern and have decided to 
+separate these two responsibilities into two separate classes named 
+“DatabaseFileAccess” and “RecordLockingManager”, which will hide the low level 
+workings from the “Data” class that will be acting as a higher level interface.  
+This clearly separates the two responsibilities, locking the details into their 
+separate classes promoting loose coupling.  Maintenance is also a lot easier as 
+all you have to do is update the code in a specific class or just replace one of 
+the classes altogether e.g. the “DataFileAccess” class, if the database were to be 
+upgraded to a newer one like MySQL or something similar.
+
+The fourth problem in this layer was to decide whether to use a record cache in 
+the “DataFileAccess” class.  After some thought, I decided to use a cache to 
+reduce the file access rate when the processing of records is needed and also 
+have the benefit of mapping record numbers to actual records, denoting the 
+record position on the actual disk in a “HashMap”.  This proved to be 
+particularly useful as the given “DBAcces” interface (legacy code) requires the 
+use of record numbers.
+
+---------------------------------------------------------------------
+
+-Summery
+
+I hope the above has explained my design choices sufficiently and I would like 
+to take this opportunity to thank you for your time in reading this document and 
+the efforts towards grading this submission.

@@ -1,0 +1,27 @@
+JDK Version and Host Platform
+-----------------------------
+
+The JDK version used for this project was 1.6.  
+The following is detailed information on the exact Java version:
+
+Java version “1.6.0_30”
+Java(TM) SE Runtime Environment (build 1.6.0_30-b12)
+Java HotSpot(TM)  64-bit Server VM (build 20.5-b30, mixed mode)
+
+------------------------------------------------------------------
+
+The project was developed and tested using Windows 7 Home Premium.  
+The following details the exact operating system information:
+
+Windows 7 Home Premium, 64 bit Operating System
+Service Pack 1
+
+------------------------------------------------------------------
+
+The project was developed and tested on an Acer laptop.  
+The following details the exact hardware information:
+
+Manufacture:		Acer
+Model: Aspire		5830T
+Processor:		Intel® Core(TM) i3-2330M CPU @ 2.20GHz 2.20 GHz
+Installed Memory(RAM):	4.00 GB (3.85 GB Usable)

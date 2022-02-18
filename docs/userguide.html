@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>
+            User Help
+        </title>
+    </head>
+    <body>
+        <h1 align="center">
+            Bodgitt and Scarper, LLC
+        </h1>
+        <h2 align="center">
+            Contractor Booking System
+        </h2>
+        <hr/>
+        <div align="justify">
+            <h3 align="left">
+                Welcome to the the Bodgitt and Scarper Contractor Booking System.
+            </h3>
+            <p>
+                Here you can learn about this application and how to use it.
+            </p>
+            <p>
+                The Bodgitt and Scarper Contractor Booking System application will help 
+                the Customer Service Representative (CRS) take requests from home owners 
+                for a type of service and offer the homeowner one or more Contractors 
+                that can provide the required services. Once the Contractor with the 
+                desired services has been found, the CSR can then book the Contractor 
+                with the Customers eight digit Customer number.
+
+            </p>
+            <p>
+                <strong>
+                    Below is a step by step guide to searching and booking 
+                    Contractors to Customers.
+                </strong>
+            </p>
+            <ol>
+                <li>
+                    Installation and Start Up.
+                </li>
+                <li>
+                    Select the Database Location at start up.
+                </li>
+                <li>
+                    Search for Contractors.
+                </li>
+                <li>
+                    Book a Contractor to a Customer.
+                </li>
+            </ol>
+            <p>
+                <strong>
+                    1. Installation and Start Up.
+                </strong>
+            </p>
+            <p>
+                There are two ways to run the Bodgitt and Scarper booking system 
+                application:
+            </p>
+            <ol>
+                <li>
+                    In Stand Alone mode.
+                </li>
+                <li>
+                    In Network Mode.
+                </li>
+            </ol>
+            <p>
+                For both modes please change your current working directory to 
+                the directory you have installed the application before executing 
+                commands.
+            </p>
+            <p>
+                Specific instructions to start the application in both modes follow:
+            </p>
+            <ol>
+                <li>
+                    <strong>
+                        In Stand Alone Mode
+                    </strong>					
+                    In stand-alone mode, you will only need to start one JVM to 
+                    run the application as the server is not used in this mode.<br />
+					<br />
+                    Once in the installed directory, runs the following command 
+                    (using the “alone” flag):<br />
+					<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<code>java -jar runme.jar alone</code><br />
+					<br />
+                    The Application will now present a frame allowing you to state the 
+                    location of the database.  For more information on this see the 
+                    ”Select the Database Location at start up” section 2.<br />
+					<br />
+              </li>
+                <li>
+                    <strong>
+                        In Network Mode<br />
+					    <br />
+                    </strong>					
+                    In network mode, you will need to start the server in one JVM and 
+                    the client in another JVM.  The JVM’s can be on the same computer 
+                    or different computers connected through a network.<br />
+					<br />
+                    First you will need to start the server in the first JVM.  To do 
+                    this, once in the installed directory, run the following command 
+                    (using the “server” flag):<br />
+					<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<code>java -jar runme.jar server</code><br />
+					<br />
+                    The server will now presents a frame allowing you to state the 
+                    location of the database and the port that you would like the server 
+                    to listen on.  For more information on this see the ”Select the 
+                    Database Location at start up” section 2.<br />
+					<br />
+                    Second you will need to start the network client in the second JVM.  
+                    To do this, once in the installed directory, run the following 
+                    command (using no flag):<br />
+					<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<code>java -jar runme.jar</code><br />
+					<br />
+                    The client will now presents a frame allowing you to state the 
+                    location of the server which in turn has the location of the database 
+                    and the port that you would like the client to connect on.  For more 
+                    information on this see the ”Select the Database Location at start up” 
+                    section 1.
+              </li>
+            </ol>
+            <p>
+                <strong>
+                    2. Select the Database Location at start up
+                </strong>
+            </p>
+            <p>
+                When the application first starts up you are presented with a 
+                configuration window. The configuration window will require you to 
+                confirm certain properties that the application needs to read the 
+                database, depending on which mode you have started the application.
+            </p>
+            <p>
+                <strong>
+                    In server mode &quot;server&quot;:<br/>
+                </strong>
+            </p>
+            <blockquote>
+                First, you will need to select the location of the database 
+                file. You can do this by using the the browse button 
+                &quot;...&quot; to the right of the Database Location  
+                field.<br />
+                <strong>Note:</strong> You must have selected a database 
+                file location to be able to start the server.<br />
+                <br />
+                Second, you will need to enter the port number ranging from 
+                1025 and 49152 that you would like the server to listen 
+                on.<br />
+                <strong>Note:</strong> You must enter the port number before 
+                you can start the server. <br />
+                <br />
+                Once the above has been entered then you can start the 
+                server. The server will start with the entered file 
+                location and port number. <br />
+                <br />
+                To start the server click the &quot;Start Server&quot; 
+                Button.<br />
+                <strong>Note:</strong> You now can not change any of the 
+                information you have entered.  If you whish to change the 
+                information you have entered, you must click the &quot;Stop 
+                Server&quot; button, re-enter the information and click 
+                &quot;Start Server&quot; again to restart the server.
+            </blockquote>
+            <p>
+                <strong>
+                In Network Client mode:<br />
+                </strong>
+            </p>
+            <blockquote>
+                First, you will need to enter the location of the database 
+                by entering the address of the server.  Either an IP 
+                address or &quot;localhost&quot;<br />
+                <br />
+                Second, you will then have to enter the port number that 
+                the server is listening on.<br />
+                <br />
+                Once the above has been entered you can connect to the 
+                server by clicking the &quot;Confirm&quot; button and the 
+                Network Client will start.<br />
+                <br />
+                <strong>Note:</strong> If you do not enter the correct 
+                server address and port number, the connection will fail and 
+                you will have to restart the client application again.
+            </blockquote>    
+            <p>
+                <strong>
+                In Stand Alone mode:<br />
+                </strong>
+            </p>
+            <blockquote>
+                First, you will need to select the location of the database 
+                file. You can do this by using the the browse button 
+                &quot;...&quot; to the right of the Database Location  
+                field. <br />
+                <br />
+                Once the above information has been entered correctly the 
+                application will start by clicking the &quot;Confirm&quot; 
+                button.<br />
+                <strong>Note:</strong> If the file is not found or it is the 
+                wrong type of file the application will shut down and you 
+                will have to restart the stand alone application again.
+            </blockquote>
+            <p>
+                <strong>
+                    3. Search for Contractors
+                </strong>
+            </p>
+            <p>
+                The search functions are the same in either the Network Client or the 
+                Stand Alone Application modes.
+            </p>
+            <p>
+                To search for a list of contractors:
+            </p>
+            <p>
+                You can search the data for all records by not entering any search 
+                criteria, or for records where the name and/or location fields 
+                exactly match your entries. If any if the fields are left empty the 
+                search will match the other non-empty field exactly disregarding 
+                the empty field and returning all records only matching the non-empty
+                field exactly.<br />
+                <br />
+          </p>
+            <p>
+                Once you have entered the search criteria you have chosen 
+                click the search button and the search results will be displayed 
+                in a display table at the centre of the window.<br />
+                <br />
+          </p>
+            <p>
+                <strong>
+                    4. Book a Contractor to a Customer:
+                </strong>
+            </p>
+            <p>
+                The contractor booking functions are the same in either the Network 
+                Client or the Stand Alone Application modes.
+            </p>
+            <p>
+                To book a contractor with a customer number:
+            </p>
+            <p>
+                You must first search for a list of contractors using the search 
+                operation in step 2 so a display table is shown with a list of 
+                Contractors to choose from.<br />
+                <br />
+          </p>
+            <p>
+                Once you have some or all contractors displayed in the display table 
+                you can select one from the table by clicking it. You then click the 
+                &quot;Book&quot; button below the display table to start the booking 
+                process.<br />
+                <strong>Note:</strong> If a contractor has been booked while you are 
+                in the process of booking a message will be shown and the list will 
+                refresh showing the current status of all your searched contractors. 
+                If this occurs you will have to book another contractor or abort the 
+                operation.<br />
+                <br />
+          </p>
+            <p>
+                After you have clicked the &quot;Book&quot; button, another window 
+                will open and with the selected contractor details, check the 
+                details, enter the customer eight digit number and click the 
+                &quot;Book&quot; button to book the contractor.<br />
+                <strong>Note: </strong>The system will not accept anything but an 
+                    eight digit customer number.<br />
+                <br />
+          </p>
+            <p>
+                Once the contractor is booked, a conformation message will appear 
+                indicating the booking operation has been completed successfully. 
+                Also the display table will be updated to reflect your booking.
+            </p>
+        </div>  
+    </body>
+</html>
